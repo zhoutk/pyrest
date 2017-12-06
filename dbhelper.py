@@ -7,6 +7,8 @@ with open("./configs.json", 'r', encoding='utf-8') as json_file:
 
 def query_sql(sql, values):
     try:
+        flag = False
+        error = {}
         conn = pymysql.connect(host=dbconf['db_host'], port=dbconf['db_port'], user=dbconf['db_username'],
                                passwd=dbconf['db_password'], db=dbconf['db_database'], charset=dbconf['db_charset'])
         with conn.cursor() as cursor:
@@ -15,9 +17,13 @@ def query_sql(sql, values):
         # conn.commit()
         print('Sql: ', sql, ' Values: ', values)
     except Exception as err:
+        flag = True
+        error = err
         print('Error: ', err)
     finally:
         conn.close()
+        if flag:
+            return {"code": error.args[0], "error": error.args[1]}
     return result
 
 
@@ -34,7 +40,7 @@ def select(tablename, params={}, fields=[]):
         where += ' where ' + ' and '.join(ps)
 
     rs = query_sql(sql+where, pvs)
-    print('Result: ', len(rs), rs)
+    print('Result: ', rs)
     return rs
 
 

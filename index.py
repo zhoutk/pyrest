@@ -29,26 +29,28 @@ def usual_query_method(query_url):
 
     urls = query_url.split('/')
     url_len = len(urls)
-    if url_len < 1 or url_len > 2 and url_len % 2 == 1:
+    ps = {}
+    if url_len > 0:
+        table = urls[0]
+    if url_len == 1 and (request.method == 'POST' or request.method == 'GET'):
+        pass
+    elif url_len == 2:
+        ps['id'] = urls[1]
+    elif url_len > 2 and (request.method == 'GET' or request.method == 'DELETE') and url_len % 2 == 1:
+        for i, al in enumerate(urls):
+            if i == 0:
+                continue
+            if i % 2 == 1:
+                tmp = al
+            else:
+                ps[tmp] = al
+    else:
         return "The params is wrong."
 
-    ps = {}
-    for i, al in enumerate(urls):
-        if i == 0:
-            table = al
-        elif i == 1:
-            idd = al
-        elif i > 1 and i % 2 == 0:
-            tmp = al
-        else:
-            ps[tmp] = al
-
-    # ps['table'] = table
-    if url_len > 1:
-        ps['id'] = idd
-    if request.method == 'POST' or request.method == 'PUT':
-        params = dict(params, **{'table': ps.get('table'), 'id': ps.get('id')})
+    if (request.method == 'POST' or request.method == 'PUT') and ps.get('id'):
+        params = dict(params, **{'id': ps.get('id')})
     if request.method == 'GET' or request.method == 'DELETE':
         params = ps
-    rs = Basedao(table).retrieve(params)
+
+    rs = Basedao(table).retrieve(params, [], {})
     return jsonify(rs)
