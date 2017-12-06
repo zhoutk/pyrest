@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request, jsonify
 import json
 from werkzeug.routing import BaseConverter
+from basedao import Basedao
 
 
 def check_json_format(raw_msg):
@@ -23,7 +24,7 @@ app.url_map.converters['regex'] = RegexConverter
 
 
 @app.route('/rs/<regex(".*"):query_url>', methods=['PUT', 'DELETE', 'POST', 'GET'])
-def rs(query_url):
+def usual_query_method(query_url):
     (flag, params) = check_json_format(request.data)
 
     urls = query_url.split('/')
@@ -42,11 +43,12 @@ def rs(query_url):
         else:
             ps[tmp] = al
 
-    ps['table'] = table
+    # ps['table'] = table
     if url_len > 1:
         ps['id'] = idd
     if request.method == 'POST' or request.method == 'PUT':
         params = dict(params, **{'table': ps.get('table'), 'id': ps.get('id')})
     if request.method == 'GET' or request.method == 'DELETE':
         params = ps
-    return jsonify(params)
+    rs = Basedao(table).retrieve(params)
+    return jsonify(rs)
