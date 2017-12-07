@@ -11,10 +11,10 @@ def query_sql(sql, values):
         error = {}
         conn = pymysql.connect(host=dbconf['db_host'], port=dbconf['db_port'], user=dbconf['db_username'],
                                passwd=dbconf['db_password'], db=dbconf['db_database'], charset=dbconf['db_charset'])
-        with conn.cursor() as cursor:
-            cursor.execute(sql, values)
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+            num = cursor.execute(sql, values)
         result = cursor.fetchall()
-        # conn.commit()
+        conn.commit()
         print('Sql: ', sql, ' Values: ', values)
     except Exception as err:
         flag = True
@@ -23,8 +23,14 @@ def query_sql(sql, values):
     finally:
         conn.close()
         if flag:
-            return {"code": error.args[0], "error": error.args[1]}
-    return result
+            return error, num if 'num' in dir() else 0
+    return result, num
+
+
+def insert(tablename, params={}):
+    sql = "insert into %s set " % tablename
+    rs = query_sql(sql + "name = %(name)s, address = %(address)s", params)
+    return rs[1]
 
 
 def select(tablename, params={}, fields=[]):
@@ -41,7 +47,7 @@ def select(tablename, params={}, fields=[]):
 
     rs = query_sql(sql+where, pvs)
     print('Result: ', rs)
-    return rs
+    return {"rows": rs[0], "total": rs[1]}
 
 
 # select('member', {'username': 'admin', "status": 1})
