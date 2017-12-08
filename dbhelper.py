@@ -30,8 +30,12 @@ def exec_sql(sql, values, is_query=False):
 
 
 def insert(tablename, params={}):
-    sql = "insert into %s set " % tablename
-    rs = exec_sql(sql + "name = %(name)s, address = %(address)s", params)
+    sql = "insert into %s " % tablename
+    ks = params.keys()
+    sql += "(`" + "`,`".join(ks) + "`)"
+    vs = list(params.values())
+    sql += " values (%s)" % ','.join(['%s']*len(vs))
+    rs = exec_sql(sql, vs)
     if rs[0]:
         return {"code": 200, "info": "create success.", "total": rs[2]}
     else:
