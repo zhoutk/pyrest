@@ -5,7 +5,7 @@ with open("./configs.json", 'r', encoding='utf-8') as json_file:
     dbconf = json.load(json_file)['db_config']
 
 
-def query_sql(sql, values):
+def exec_sql(sql, values, is_query=False):
     try:
         flag = False
         error = {}
@@ -13,8 +13,10 @@ def query_sql(sql, values):
                                passwd=dbconf['db_password'], db=dbconf['db_database'], charset=dbconf['db_charset'])
         with conn.cursor(pymysql.cursors.DictCursor) as cursor:
             num = cursor.execute(sql, values)
-        result = cursor.fetchall()
-        conn.commit()
+        if is_query:
+            result = cursor.fetchall()
+        else:
+            conn.commit()
         print('Sql: ', sql, ' Values: ', values)
     except Exception as err:
         flag = True
@@ -23,14 +25,17 @@ def query_sql(sql, values):
     finally:
         conn.close()
         if flag:
-            return error, num if 'num' in dir() else 0
-    return result, num
+            return False, error, num if 'num' in dir() else 0
+    return True, result if 'result' in dir() else '', num
 
 
 def insert(tablename, params={}):
     sql = "insert into %s set " % tablename
-    rs = query_sql(sql + "name = %(name)s, address = %(address)s", params)
-    return rs[1]
+    rs = exec_sql(sql + "name = %(name)s, address = %(address)s", params)
+    if rs[0]:
+        return {"code": 200, "info": "create success.", "total": rs[2]}
+    else:
+        return {"code": 204, "error": rs[1].args[0], "total": rs[2]}
 
 
 def select(tablename, params={}, fields=[]):
@@ -45,9 +50,12 @@ def select(tablename, params={}, fields=[]):
             pvs.append(params[al])
         where += ' where ' + ' and '.join(ps)
 
-    rs = query_sql(sql+where, pvs)
+    rs = exec_sql(sql+where, pvs, True)
     print('Result: ', rs)
-    return {"rows": rs[0], "total": rs[1]}
+    if rs[0]:
+        return {"code": 200, "rows": rs[1], "total": rs[2]}
+    else:
+        return {"code": rs[1].args[0], "error": rs[1].args[1], "total": rs[2]}
 
 
 # select('member', {'username': 'admin', "status": 1})
