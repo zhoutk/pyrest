@@ -44,7 +44,7 @@ def update(tablename, params={}):
     ks = params.keys()
     for al in ks:
         sql += "`" + al + "` = %(" + al + ")s,"
-    sql = sql[0:-1]
+    sql = sql[:-1]
     sql += " where _id = %(_id)s "
     rs = exec_sql(sql, params)
     if rs[0]:
