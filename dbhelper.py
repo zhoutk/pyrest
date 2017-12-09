@@ -29,6 +29,20 @@ def exec_sql(sql, values, is_query=False):
     return True, result if 'result' in dir() else '', num
 
 
+def update(tablename, params={}):
+    sql = "update %s set " % tablename
+    ks = params.keys()
+    for al in ks:
+        sql += "`" + al + "` = %(" + al + ")s,"
+    sql = sql[0:-1]
+    sql += " where _id = %(_id)s "
+    rs = exec_sql(sql, params)
+    if rs[0]:
+        return {"code": 200, "info": "update success.", "total": rs[2]}
+    else:
+        return {"code": rs[1].args[0], "error": rs[1].args[1], "total": rs[2]}
+
+
 def insert(tablename, params={}):
     sql = "insert into %s " % tablename
     ks = params.keys()

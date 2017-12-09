@@ -41,7 +41,7 @@ def usual_query_method(query_url):
     if url_len == 1 and (request.method == 'POST' or request.method == 'GET'):
         pass
     elif url_len == 2:
-        ps['id'] = urls[1]
+        ps['_id'] = urls[1]
     elif url_len > 2 and (request.method == 'GET' or request.method == 'DELETE') and url_len % 2 == 1:
         for i, al in enumerate(urls):
             if i == 0:
@@ -51,10 +51,10 @@ def usual_query_method(query_url):
             else:
                 ps[tmp] = al
     else:
-        return "The params is wrong."
+        return "The rest api is not exist."
 
-    if (request.method == 'POST' or request.method == 'PUT') and ps.get('id'):
-        params = dict(params, **{'id': ps.get('id')})
+    if (request.method == 'POST' or request.method == 'PUT') and ps.get('_id'):
+        params = dict(params, **{'_id': ps.get('_id')})
     if request.method == 'GET' or request.method == 'DELETE':
         params = ps
 
