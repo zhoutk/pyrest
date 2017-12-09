@@ -29,6 +29,16 @@ def exec_sql(sql, values, is_query=False):
     return True, result if 'result' in dir() else '', num
 
 
+def delete(tablename, params={}):
+    sql = "delete from %s " % tablename
+    sql += " where _id = %(_id)s "
+    rs = exec_sql(sql, params)
+    if rs[0]:
+        return {"code": 200, "info": "delete success.", "total": rs[2]}
+    else:
+        return {"code": rs[1].args[0], "error": rs[1].args[1], "total": rs[2]}
+
+
 def update(tablename, params={}):
     sql = "update %s set " % tablename
     ks = params.keys()

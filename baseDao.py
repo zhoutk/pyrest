@@ -20,6 +20,6 @@ class BaseDao(object):
         return dbhelper.update(self.table, params)
 
     def delete(self, params={}, fields=[], session={}):
-        if '_id' in params and len(params) < 2 or '_id' not in params and len(params) < 1:
+        if '_id' not in params:
             return {"code": 301, "err": "The params is error."}
         return dbhelper.delete(self.table, params)
