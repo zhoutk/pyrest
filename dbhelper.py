@@ -54,16 +54,16 @@ def update(tablename, params={}):
 
 
 def insert(tablename, params={}):
-    sql = "insert into %s " % tablename
+    sql = "insert into %s set " % tablename
     ks = params.keys()
-    sql += "(`" + "`,`".join(ks) + "`)"
-    vs = list(params.values())
-    sql += " values (%s)" % ','.join(['%s']*len(vs))
-    rs = exec_sql(sql, vs)
+    for al in ks:
+        sql += "`" + al + "` = %(" + al + ")s,"
+    sql = sql[:-1]
+    rs = exec_sql(sql, params)
     if rs[0]:
         return {"code": 200, "info": "create success.", "total": rs[2]}
     else:
-        return {"code": 204, "error": rs[1].args[0], "total": rs[2]}
+        return {"code": rs[1].args[0], "error": rs[1].args[1], "total": rs[2]}
 
 
 def select(tablename, params={}, fields=[]):
